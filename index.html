@@ -3,172 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>双窗口 - 千问 & 豆包（带圆形控制按钮）</title>
+    <title>千问豆包搜索</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        body, html {
-            height: 100vh;
-            overflow: hidden;
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 0 20px;
         }
-        .container {
-            display: flex;
-            width: 100vw;
-            height: 100vh;
-            position: relative;
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
         }
-        .iframe-col {
-            height: 100%;
+        #searchText {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+        #submitBtn {
+            padding: 12px 30px;
+            font-size: 16px;
+            background-color: #4096ff;
+            color: white;
             border: none;
-            transition: width 0.1s ease;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
-        #left-iframe {
-            width: 50%;
-            min-width: 200px;
+        #submitBtn:hover {
+            background-color: #3088ff;
         }
-        #right-iframe {
-            flex: 1;
-            min-width: 200px;
+        #submitBtn:disabled {
+            background-color: #a0cfff;
+            cursor: not-allowed;
         }
-        /* 分割线样式 */
-        .resizer {
-            width: 4px;
-            height: 100%;
-            background-color: #e5e7eb;
-            cursor: col-resize;
-            user-select: none;
-            position: relative;
-        }
-        .resizer:hover {
-            background-color: #94a3b8;
-        }
-        /* 圆形控制按钮样式 */
-        .resize-handle {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background-color: #475569;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            cursor: move; /* 鼠标样式变为移动箭头 */
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            z-index: 10;
-        }
-        .resize-handle:hover {
-            background-color: #2563eb;
-            transform: translate(-50%, -50%) scale(1.1);
-            transition: all 0.2s ease;
+        .tip {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <iframe id="left-iframe" src="https://qianwen.com" class="iframe-col" title="千问"></iframe>
-        <div class="resizer" id="resizer">
-            <div class="resize-handle" id="resizeHandle"></div>
-        </div>
-        <iframe id="right-iframe" src="https://doubao.com" class="iframe-col" title="豆包"></iframe>
-    </div>
+    <h1 class="title">千问豆包搜索</h1>
+    <textarea id="searchText" placeholder="请输入你要搜索的内容..."></textarea>
+    <button id="submitBtn" onclick="searchContent()">执行搜索</button>
+    <p class="tip">点击按钮后，将先打开千问搜索，再打开豆包搜索</p>
 
     <script>
-        // 获取元素
-        const resizer = document.getElementById('resizer');
-        const resizeHandle = document.getElementById('resizeHandle');
-        const leftIframe = document.getElementById('left-iframe');
-        const container = document.querySelector('.container');
-
-        // 记录初始状态
-        let isDragging = false;
-        let startX, startY, startLeftWidth, startResizerTop;
-
-        // 按住按钮开始拖动
-        resizeHandle.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            isDragging = true;
-            
-            // 记录初始位置和宽度
-            startX = e.clientX;
-            startY = e.clientY;
-            startLeftWidth = leftIframe.offsetWidth;
-            startResizerTop = resizer.offsetTop;
-
-            // 添加鼠标事件监听
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-
-            // 添加拖动状态样式
-            resizeHandle.style.backgroundColor = '#1d4ed8';
-            document.body.style.cursor = 'move';
-        });
-
-        // 鼠标移动时调整宽度和位置
-        function onMouseMove(e) {
-            if (!isDragging) return;
-
-            // 计算水平偏移量（调整左右宽度）
-            const deltaX = e.clientX - startX;
-            const newLeftWidth = startLeftWidth + deltaX;
-            // 限制最小宽度
-            if (newLeftWidth >= 200 && (container.offsetWidth - newLeftWidth) >= 200) {
-                leftIframe.style.width = `${newLeftWidth}px`;
+        function searchContent() {
+            // 获取输入框内容并去除首尾空格
+            const inputText = document.getElementById('searchText').value.trim();
+            if (!inputText) {
+                alert('请输入搜索内容！');
+                return;
             }
 
-            // 计算垂直偏移量（调整分割线上下位置）
-            const deltaY = e.clientY - startY;
-            const newResizerTop = startResizerTop + deltaY;
-            // 限制分割线在视口内
-            if (newResizerTop >= 0 && (newResizerTop + resizer.offsetHeight) <= container.offsetHeight) {
-                resizer.style.top = `${newResizerTop}px`;
-            }
+            // 禁用按钮防止重复点击
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = '搜索中...';
+
+            // 第一步：打开千问搜索（qianwen.com）
+            const qianwenUrl = `https://qianwen.com/search?q=${encodeURIComponent(inputText)}`;
+            window.open(qianwenUrl, '_blank');
+
+            // 第二步：延迟1秒打开豆包搜索（doubao.com），确保分步执行
+            setTimeout(() => {
+                const doubaoUrl = `https://doubao.com/search?q=${encodeURIComponent(inputText)}`;
+                window.open(doubaoUrl, '_blank');
+
+                // 恢复按钮状态
+                btn.disabled = false;
+                btn.textContent = '执行搜索';
+            }, 1000);
         }
-
-        // 松开鼠标停止拖动
-        function onMouseUp() {
-            if (!isDragging) return;
-            isDragging = false;
-
-            // 移除事件监听
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-
-            // 恢复样式
-            resizeHandle.style.backgroundColor = '#475569';
-            document.body.style.cursor = 'default';
-        }
-
-        // 兼容分割线本身的宽度调整（可选）
-        resizer.addEventListener('mousedown', (e) => {
-            // 防止冒泡到按钮事件
-            if (e.target === resizer) {
-                e.preventDefault();
-                let isResizing = true;
-                const startX = e.clientX;
-                const startLeftWidth = leftIframe.offsetWidth;
-
-                const handleResize = (e) => {
-                    if (!isResizing) return;
-                    const deltaX = e.clientX - startX;
-                    const newLeftWidth = startLeftWidth + deltaX;
-                    if (newLeftWidth >= 200 && (container.offsetWidth - newLeftWidth) >= 200) {
-                        leftIframe.style.width = `${newLeftWidth}px`;
-                    }
-                };
-
-                const stopResize = () => {
-                    isResizing = false;
-                    document.removeEventListener('mousemove', handleResize);
-                    document.removeEventListener('mouseup', stopResize);
-                };
-
-                document.addEventListener('mousemove', handleResize);
-                document.addEventListener('mouseup', stopResize);
-            }
-        });
     </script>
 </body>
 </html>
