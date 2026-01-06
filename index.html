@@ -32,7 +32,7 @@
             resize: vertical;
             margin-bottom: 20px;
         }
-        #submitBtn {
+        #generateBtn {
             padding: 12px 30px;
             font-size: 16px;
             background-color: #4096ff;
@@ -41,13 +41,42 @@
             border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin-bottom: 30px;
         }
-        #submitBtn:hover {
+        #generateBtn:hover {
             background-color: #3088ff;
         }
-        #submitBtn:disabled {
-            background-color: #a0cfff;
-            cursor: not-allowed;
+        #resultArea {
+            display: none;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        #question {
+            color: #2f5496;
+            font-weight: 500;
+        }
+        .action-btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: opacity 0.3s;
+        }
+        .qianwen-btn {
+            background-color: #1890ff;
+            color: white;
+        }
+        .doubao-btn {
+            background-color: #52c41a;
+            color: white;
+        }
+        .action-btn:hover {
+            opacity: 0.9;
         }
         .tip {
             margin-top: 15px;
@@ -58,37 +87,53 @@
 </head>
 <body>
     <h1 class="title">千问豆包搜索</h1>
-    <textarea id="searchText" placeholder="请输入你要搜索的内容..."></textarea>
-    <button id="submitBtn" onclick="searchContent()">执行搜索</button>
-    <p class="tip">点击按钮后，将先打开千问搜索，再打开豆包搜索</p>
+    <textarea id="searchText" placeholder="请输入你要查询的问题..."></textarea>
+    <button id="generateBtn" onclick="generateQuestion()">生成问题</button>
+    <p class="tip">输入内容后点击生成，即可获取复制并前往按钮</p>
+
+    <!-- 结果展示区域 -->
+    <div id="resultArea">
+        <p>问题：<span id="question">大模型如何微调？</span></p>
+        <button class="action-btn qianwen-btn" onclick="copyAndGo('qianwen')">复制问题并前往通义千问</button>
+        <button class="action-btn doubao-btn" onclick="copyAndGo('doubao')">复制问题并前往豆包</button>
+    </div>
 
     <script>
-        function searchContent() {
-            // 获取输入框内容并去除首尾空格
+        // 生成问题并显示结果区域
+        function generateQuestion() {
             const inputText = document.getElementById('searchText').value.trim();
             if (!inputText) {
-                alert('请输入搜索内容！');
+                alert('请输入问题内容！');
                 return;
             }
+            // 更新问题文本
+            document.getElementById('question').innerText = inputText;
+            // 显示结果区域
+            document.getElementById('resultArea').style.display = 'block';
+        }
 
-            // 禁用按钮防止重复点击
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.textContent = '搜索中...';
-
-            // 第一步：打开千问搜索（qianwen.com）
-            const qianwenUrl = `https://qianwen.com/search?q=${encodeURIComponent(inputText)}`;
-            window.open(qianwenUrl, '_blank');
-
-            // 第二步：延迟1秒打开豆包搜索（doubao.com），确保分步执行
-            setTimeout(() => {
-                const doubaoUrl = `https://doubao.com/search?q=${encodeURIComponent(inputText)}`;
-                window.open(doubaoUrl, '_blank');
-
-                // 恢复按钮状态
-                btn.disabled = false;
-                btn.textContent = '执行搜索';
-            }, 1000);
+        // 复制问题并前往对应网站
+        function copyAndGo(target) {
+            const text = document.getElementById('question').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                let url = '';
+                let siteName = '';
+                // 根据目标选择网站
+                if (target === 'qianwen') {
+                    url = 'https://qianwen.com';
+                    siteName = '通义千问';
+                } else if (target === 'doubao') {
+                    url = 'https://doubao.com';
+                    siteName = '豆包';
+                }
+                // 打开新标签页
+                window.open(url, '_blank', 'noopener,noreferrer');
+                // 提示用户
+                alert(`问题已复制，请在${siteName}页面粘贴发送！`);
+            }).catch(err => {
+                alert('复制失败，请手动复制问题：' + text);
+                console.error('Clipboard error: ', err);
+            });
         }
     </script>
 </body>
