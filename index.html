@@ -32,7 +32,7 @@
             resize: vertical;
             margin-bottom: 20px;
         }
-        #submitBtn {
+        .btn {
             padding: 12px 30px;
             font-size: 16px;
             background-color: #4096ff;
@@ -41,11 +41,13 @@
             border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
         }
-        #submitBtn:hover {
+        .btn:hover {
             background-color: #3088ff;
         }
-        #submitBtn:disabled {
+        .btn:disabled {
             background-color: #a0cfff;
             cursor: not-allowed;
         }
@@ -54,42 +56,46 @@
             font-size: 14px;
             color: #666;
         }
+        .step2 {
+            background-color: #67c23a;
+        }
+        .step2:hover {
+            background-color: #5cad2e;
+        }
     </style>
 </head>
 <body>
     <h1 class="title">千问豆包搜索</h1>
     <textarea id="searchText" placeholder="请输入你要搜索的内容..."></textarea>
-    <button id="submitBtn" onclick="searchContent()">执行搜索</button>
-    <p class="tip">点击按钮后，将同时打开千问和豆包的搜索结果</p>
+    <button id="step1Btn" class="btn" onclick="openQianwen()">第一步：打开千问</button>
+    <button id="step2Btn" class="btn step2" onclick="openDoubao()" disabled>第二步：打开豆包</button>
+    <p class="tip">依次点击按钮，避免浏览器拦截弹窗</p>
 
     <script>
-        function searchContent() {
-            // 获取输入框内容并去除首尾空格
+        let encodedText = ''; // 存储编码后的搜索内容
+
+        // 第一步：打开千问
+        function openQianwen() {
             const inputText = document.getElementById('searchText').value.trim();
             if (!inputText) {
                 alert('请输入搜索内容！');
                 return;
             }
-
-            // 禁用按钮防止重复点击
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.textContent = '搜索中...';
-
-            // 编码输入内容，确保特殊字符正常传递
-            const encodedText = encodeURIComponent(inputText);
-            
-            // 同时打开两个标签页（无延迟）
-            // 千问URL格式：https://qianwen.com/?q=...
+            encodedText = encodeURIComponent(inputText);
+            // 打开千问标签页
             window.open(`https://qianwen.com/?q=${encodedText}`, '_blank');
-            // 豆包URL格式：https://doubao.com/search?q=...
-            window.open(`https://doubao.com/search?q=${encodedText}`, '_blank');
+            // 启用第二步按钮
+            document.getElementById('step2Btn').disabled = false;
+        }
 
-            // 1秒后恢复按钮状态（给浏览器足够时间打开标签页）
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.textContent = '执行搜索';
-            }, 1000);
+        // 第二步：打开豆包
+        function openDoubao() {
+            if (!encodedText) return;
+            // 打开豆包标签页
+            window.open(`https://doubao.com/search?q=${encodedText}`, '_blank');
+            // 重置状态（可选）
+            document.getElementById('step2Btn').disabled = true;
+            encodedText = '';
         }
     </script>
 </body>
